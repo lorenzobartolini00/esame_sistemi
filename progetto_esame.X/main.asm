@@ -19,8 +19,8 @@
 	
 ; variabili in RAM (shared RAM)
 		udata_shr
-current_sec         res    .1
-current_min         res    .1
+curr_sec         res    .1
+curr_min         res    .1
 	 ;flags contiene due bit: CRONO_ON e CAN_SLEEP, che vengono utilizzati per controllare se il cronometro 
 	 ;è attivo e se la cpu può andare in sleep. La cpu non può andare in sleep fintanto che si sta facendo il debouncing
 flags		res    .1
@@ -70,6 +70,10 @@ start
 		
 		;il cronometro ancora non è partito
 		bcf flags, CRN_RUN
+		
+		;azzero i contatori dei minuti e dei secondi
+		clrf	curr_sec
+		clrf	curr_min
 		
 		;leggo PORTB per annullare mismatch
 		banksel	PORTB
@@ -208,9 +212,9 @@ test_button
 		call toggle_led
 		
 		;faccio il toggle del cronometro
-		;banksel T1CON
-		;movlw	0x01
-		;xorwf   T1CON, f
+		banksel T1CON
+		movlw	0x01
+		xorwf   T1CON, f
 		
 button_end
 		; salva nuovo stato di PORTB su portb_prev
@@ -238,10 +242,14 @@ test_timer1
 		pagesel toggle_led
 		call toggle_led
 		
+		;chiamo funzione che incrementa il conteggio del cronometro
+		pagesel increment_cronometer
+		call	increment_cronometer
+		
 		goto irq_end
 		
 test_usart
-		
+
 		
 irq_end
 		;ripristino del contesto
@@ -288,6 +296,46 @@ reload_tmr1
 	bsf     T1CON, TMR1ON
 
 	return
+
+increment_cronometer
+	;incremento i secondi
+	incf	curr_sec
+	
+	;se i secondi sono arrivati a 60, allora incrementa i minuti, altrimenti return
+	movlw	.60
+	subwf	curr_sec, w
+
+	;se il bit Z di status è a 1 significa che i secondi sono arrivati a 60
+	banksel	STATUS
+	btfss	STATUS, Z
+	goto	end_increment
+	
+	;azzero i secondi
+	clrf	curr_sec
+	
+	;toggle led di conteggio
+	pagesel	toggle_led
+	movlw	0x08
+	call	toggle_led
+	
+	;incremento i minuti
+	incf	curr_min, w
+	
+	;se i minuti sono arrivati a 60, allora azzerali e return
+	movlw	.60
+	subwf	curr_min, w
+
+	;se il bit Z di status è a 1 significa che i secondi sono arrivati a 60
+	banksel	STATUS
+	btfss	STATUS, Z
+	goto	end_increment
+	
+	;azzero i secondi
+	clrf	curr_min
+		
+end_increment
+	return
+	
 		
 ;-----------------------------------------------------------------------------------------------
 		
