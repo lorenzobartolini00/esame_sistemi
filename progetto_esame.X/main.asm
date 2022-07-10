@@ -8,8 +8,7 @@
 
 ;-----------------------------------------------------------------------------------------------
     
-	list		p=16f887		; direttiva che definisce il tipo di processore
-	#include	<p16f887.inc>	
+	#include	"p16f887.inc"	
 	#include "macro.inc"			; definizione di macro utili
 	
 	; configuration bits
@@ -24,22 +23,24 @@ current_sec         res    .1
 current_min         res    .1
 	 ;flags contiene due bit: CRONO_ON e CAN_SLEEP, che vengono utilizzati per controllare se il cronometro 
 	 ;è attivo e se la cpu può andare in sleep. La cpu non può andare in sleep fintanto che si sta facendo il debouncing
-flags		    res	   .1
+flags		res    .1
+w_temp          res    .1  ; salvataggio registri (context saving)
+status_temp     res    .1  ;  "             "                "
+pclath_temp	res    .1			; riserva un byte di memoria associato alla label status_temp
+portb_prev	res    .1
 		    
     ; variabili in RAM(memoria NON condivisa)
 		udata
-printBuff	res	.6	;Riservo 6 byte, anche se serviranno soltanto 3 byte
-w_temp          res    .1  ; salvataggio registri (context saving)
-status_temp     res    .1  ;  "             "                "
+printBuff	res    .6	;Riservo 6 byte, anche se serviranno soltanto 3 byte
 uartCount       res    .1  ; numero di byte rimasti da stampare
 
 	 ;definizioni costanti
 	 
-    ;Timer0 viene utilizzato per il debouncing. L'oscillatore interno ha una frequenza di 4MHz e la frequenza scelta come sorgente per il timer è Fosc/4.
-    ;Avendo scelto un PS di 256, il periodo Ttick è pari a 256/(4MHz/4) = 256us.
-    ;Siccome il tempo di debouncing è di 10ms e x:10ms = 1:256us, allora x = 10ms/256us = 39 tick. 
+    ;Timer0 viene utilizzato per il debouncing. L'oscillatore interno ha una frequenza di 8MHz e la frequenza scelta come sorgente per il timer è Fosc/4.
+    ;Avendo scelto un PS di 256, il periodo Ttick è pari a 256/(8MHz/4) = 128us.
+    ;Siccome il tempo di debouncing è di 10ms e x:10ms = 1:128us, allora x = 10ms/256us = 78 tick. 
     ;Pertanto la costante da caricare sul timer0 sarà (.256-.39)
-tmr_10ms    EQU	   (.256-.39)
+tmr_10ms    EQU	   (.256-.78)
     ;Timer1 è utilizzato per il cronometro, che ha una risoluzione di 1 secondo.
     ;Avendo scelto come sorgente per il timer1 quella dell'oscillatore esterno, che ha una frequenza di 36768KHz, e avendo impostato il PS a 1, 
     ;il Ttick è pari a 1/36768KHz
@@ -47,6 +48,7 @@ tmr_10ms    EQU	   (.256-.39)
     ;Pertanto il numero di incrementi che corrisponde ad 1s è pari alla metà degli incrementi massimi, ovvero 65536/2.
 tmr_1s	    EQU    (.65536-.32768)
 max_sec	    EQU   .60	
+    
 
 ;-----------------------------------------------------------------------------------------------
 
@@ -69,6 +71,22 @@ start
 		;il cronometro ancora non è partito
 		bcf flags, CRN_RUN
 		
+		;leggo PORTB per annullare mismatch
+		banksel	PORTB
+		movf	PORTB, w	; legge PORTB eliminando condizione di mismatch
+		bcf INTCON, RBIF
+		bsf INTCON, RBIE
+		
+		;inizializzo portb_prev
+		movlw	0x01    ; Pulsante non premuto -> switch aperto -> Vdd -> Logic 1
+		movwf	portb_prev
+		
+		;accendo il led di debug e il led di sleep
+		banksel PORTD
+		movlw	B'00000101'
+		movwf	PORTD
+		
+		;abilito gloabal interrupt enable
 		bsf INTCON, GIE
 main_loop
 		
@@ -82,17 +100,25 @@ wait_sleep
 		
 		;TRMT = 1 -> Shift Register empty
 		;TRMT = 0 -> Shift Register full
-		banksel TXSTA
+		;banksel TXSTA
 		;la cpu non va in sleep se TRMT = 0, perchè la trasmissione non è terminata
-		btfsc TXSTA, TRMT
-		goto go_sleep
+		;btfsc TXSTA, TRMT
+		;goto go_sleep
 		
 		;riabilito il global interrupt enable
 		bsf INTCON, GIE
 		
 		goto wait_sleep
 go_sleep
+		;spengo il led di sleep
+		banksel PORTD
+		bcf PORTD, LED_D3
+		
 		sleep
+wake_up		
+		;accendo il led di sleep
+		banksel PORTD
+		bsf PORTD, LED_D3
 		
 		;una volta risvegliato dall'interrupt, riabilito il GIE per entrare nella ISR
 		bsf INTCON, GIE
@@ -102,12 +128,81 @@ go_sleep
 ;interrupt service routine
 irq		code	0x0004
 		;salvataggio del contesto
-		movwf w_temp
-		swapf STATUS, w
-		movwf status_temp
+		movwf	w_temp		
+		swapf	STATUS,w		
+		movwf	status_temp		
+		movf	PCLATH,w		
+		movwf	pclath_temp
 test_timer0
+		;controllo se l'interrupt è stato generato dallo scadere del timer0, utilizzato per il debouncing
+		btfss INTCON, T0IE
+		goto test_button
+		btfss INTCON, T0IF
+		goto test_button
 		
+		;resetto l'interrupt flag e disabilito interrupt da timer 0
+		bcf INTCON, T0IF
+		bcf INTCON, T0IE
+		
+		;riabilito l'interrupt dei pulsanti.
+		bsf INTCON, RBIE
+		
+		;setto can_sleep
+		bsf flags, CAN_SLEEP
+		
+		;toggle led di debug
+		movlw   0x08        ;Corrisponde alla costante 00000001
+		pagesel toggle_led
+		call toggle_led
+		
+		goto irq_end
 test_button
+		btfss	INTCON, RBIF
+		goto	test_timer1
+		btfss	INTCON, RBIE
+		goto	test_timer1
+		
+		;leggo la porta per eliminare la condizione di mismatch
+		banksel	PORTB
+		movf	PORTB, w	; legge PORTB eliminando condizione di mismatch
+		bcf	INTCON, RBIF
+		
+		;controllo se c'è stato un cambiamento dello stato della porta
+		xorwf	portb_prev, w	
+		andlw	0x01	       
+		btfsc	STATUS,Z        
+		goto	button_end	
+		
+		;il pulsante 1 è stato premuto o rilasciato, iniziare il conteggio di debouncing
+		
+		;disabilito interrupt
+		bcf INTCON, RBIE
+		
+		;resetto can_sleep. Il micro non può andare in sleep durante il debouncing
+		bcf flags, CAN_SLEEP
+		
+		;faccio partire il timer 0 per il debouncing
+		movlw	tmr_10ms
+		pagesel start_timer
+		call    start_timer
+	
+		;se il bit 0 di portb_prev è a zero significa che il pulsante è stato premuto
+		btfss	portb_prev, 0
+		goto	button_end 
+		
+		;toggle led di debug
+		movlw   0x01        ;Corrisponde alla costante 00000001
+		pagesel toggle_led
+		call toggle_led
+		
+button_end
+		; salva nuovo stato di PORTB su portb_prev
+		banksel PORTB
+		movf	PORTB, w
+		movwf	portb_prev
+
+		goto	irq_end		
+
 		
 test_timer1
 		
@@ -115,19 +210,37 @@ test_usart
 		
 irq_end
 		;ripristino del contesto
-		swapf status_temp, w
-		movwf STATUS
-		swapf w_temp, f
-		swapf w_temp, w
+		movf	pclath_temp,w
+		movwf	PCLATH			
+		swapf	status_temp,w				
+		movwf	STATUS		
+		swapf	w_temp,f		
+		swapf	w_temp,w
 		
 		retfie
+;-----------------------------------------------------------------------------------------------
+		
+start_timer
+		banksel TMR0
+		movwf TMR0
+		
+		bcf INTCON, T0IF
+		bsf INTCON, T0IE
+		
+		return
+toggle_led
+		
+		banksel PORTD
+		xorwf	PORTD, f
+		
+		return
 		
 ;-----------------------------------------------------------------------------------------------
 		
 initHw
 ; Scelgo la frequenza del clock di sistema
 		
-	setRegK OSCCON, B'01110001' ; 8 MHz internal oscillator
+	setRegK OSCCON, B'01110001' ; 8 MHz internal oscillator	
 	
 ;Interrupt
 	clrf	INTCON	;tutti gli interrupt sono disabilitati
@@ -165,7 +278,7 @@ initHw
 	;T0SE = 0 -> incremento sul fronte di salita(irrilevante, siccome utilizzo sorgente interna)
 	;PSA = 0 -> prescaler assegnato al timer0
 	;PS<2:0> = 111 -> prescaler a 256
-	setRegK	OPTION_REG, '00000111'
+	setRegK	OPTION_REG, B'01000111'
 	
 ;Inizializzazione timer1
 	
@@ -176,7 +289,7 @@ initHw
 	;#T1SYNC = 0 -> sincronizzazione disabilitata(il timer deve lavorare anche in sleep)
 	;TMR1CS = 1 -> seleziono sorgente esterna, oscillatore LP, dato che quando il micro è in sleep il timer deve continuare a contare
 	;TMR1ON = 0 -> timer è disattivato, verrà attivato al momento opportuno
-	setRegK T1CON, '00001010'
+	setRegK T1CON, B'00001010'
 	
 	
 ;Configuro modulo EUSART
@@ -189,7 +302,7 @@ initHw
 	;BRGH = 1 -> sabilito modalità High speed per la generazione del bode rate
 	;TMRT read only
 	;TX9D = 0 -> nono bit a zero
-	setRegK TXSTA, '00100100'
+	setRegK TXSTA, B'00100100'
 	
 	;SPEN = 1 -> porta seriale abilitata
 	;RX9 = 0 -> ricezione nono bit disabilitato
@@ -199,7 +312,7 @@ initHw
 	;FERR read only
 	;OERR read only
 	;RX9D = 0 -> nono bit a zero
-	setRegK RCSTA, '10000000'
+	setRegK RCSTA, B'10000000'
 	
 	;BRG16 = 0 -> Baud Rate generator ad 8 bit
 	setReg0 BAUDCTL
@@ -209,7 +322,6 @@ initHw
 	;SYNC = 0
 	;BRGH = 1
 	;BRG16 = 0
-	
 	setRegK SPBRG, .25
 	
     end

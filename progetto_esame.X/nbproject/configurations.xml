@@ -13,7 +13,6 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>main.asm</itemPath>
-      <itemPath>macro.inc.asm</itemPath>
       <itemPath>macro.inc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
@@ -501,6 +500,29 @@
                   value=""/>
         <property key="warningmessagebreakoptions.warningmessages" value="holdstate"/>
       </Simulator>
+      <item path="macro.inc" ex="true" overriding="true">
+        <MPASMWIN-AS>
+          <property key="cross.reference.file" value=""/>
+          <property key="default.radix" value="HEX"/>
+          <property key="enable.case.sensitivity" value="true"/>
+          <property key="hex.output.format" value="INHX32"/>
+          <property key="preprocessor.macros" value=""/>
+          <property key="warning.level" value="0"/>
+        </MPASMWIN-AS>
+        <MPASMWIN-LD>
+          <property key="cod-file" value="false"/>
+          <property key="extra-lib-directories" value=""/>
+          <property key="hex-output-format" value="INHX32"/>
+          <property key="map-file" value="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map"/>
+        </MPASMWIN-LD>
+        <mpasmsuite>
+          <property key="absolute-mode" value="false"/>
+          <property key="eeprom-width" value="8"/>
+          <property key="extended-mode" value="false"/>
+          <property key="extended-mode-mpasm" value="false"/>
+          <property key="extended-mode-mplink" value="false"/>
+        </mpasmsuite>
+      </item>
       <mpasmsuite>
         <property key="absolute-mode" value="false"/>
         <property key="eeprom-width" value="8"/>

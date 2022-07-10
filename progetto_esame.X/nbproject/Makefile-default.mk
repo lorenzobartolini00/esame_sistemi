@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=main.asm macro.inc.asm
+SOURCEFILES_QUOTED_IF_SPACED=main.asm
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/macro.inc.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/macro.inc.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/macro.inc.o
+OBJECTFILES=${OBJECTDIR}/main.o
 
 # Source Files
-SOURCEFILES=main.asm macro.inc.asm
+SOURCEFILES=main.asm
 
 
 
@@ -103,14 +103,6 @@ ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
 	@${DEP_GEN} -d "${OBJECTDIR}/main.o"
 	@${FIXDEPS} "${OBJECTDIR}/main.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
-${OBJECTDIR}/macro.inc.o: macro.inc.asm  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/macro.inc.o.d 
-	@${RM} ${OBJECTDIR}/macro.inc.o 
-	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/macro.inc.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_SIMULATOR=1 -q -p$(MP_PROCESSOR_OPTION)  -l\"${OBJECTDIR}/macro.inc.lst\" -e\"${OBJECTDIR}/macro.inc.err\" $(ASM_OPTIONS)    -o\"${OBJECTDIR}/macro.inc.o\" \"macro.inc.asm\" 
-	@${DEP_GEN} -d "${OBJECTDIR}/macro.inc.o"
-	@${FIXDEPS} "${OBJECTDIR}/macro.inc.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
-	
 else
 ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
@@ -119,14 +111,6 @@ ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
 	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/main.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -q -p$(MP_PROCESSOR_OPTION)  -l\"${OBJECTDIR}/main.lst\" -e\"${OBJECTDIR}/main.err\" $(ASM_OPTIONS)    -o\"${OBJECTDIR}/main.o\" \"main.asm\" 
 	@${DEP_GEN} -d "${OBJECTDIR}/main.o"
 	@${FIXDEPS} "${OBJECTDIR}/main.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
-	
-${OBJECTDIR}/macro.inc.o: macro.inc.asm  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}" 
-	@${RM} ${OBJECTDIR}/macro.inc.o.d 
-	@${RM} ${OBJECTDIR}/macro.inc.o 
-	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/macro.inc.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -q -p$(MP_PROCESSOR_OPTION)  -l\"${OBJECTDIR}/macro.inc.lst\" -e\"${OBJECTDIR}/macro.inc.err\" $(ASM_OPTIONS)    -o\"${OBJECTDIR}/macro.inc.o\" \"macro.inc.asm\" 
-	@${DEP_GEN} -d "${OBJECTDIR}/macro.inc.o"
-	@${FIXDEPS} "${OBJECTDIR}/macro.inc.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
 endif
 
