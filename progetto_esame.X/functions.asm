@@ -98,7 +98,7 @@ format_data
 		banksel	    curr_min
 		movf	    curr_min, w
 		
-		;chiamo una funzione che salva su W e tmp rispettivamente le decine e le unità del valore salvato su W
+		;chiamo una funzione che salva su W e tmp rispettivamente le decine e le unità del valore presente su W
 		pagesel	    split_number
 		call	    split_number
 		
@@ -123,7 +123,7 @@ format_data
 		banksel	    curr_sec
 		movf	    curr_sec, w
 		
-		;chiamo una funzione che salva su W e tmp rispettivamente le decine e le unità del valore salvato su W
+		;chiamo una funzione che salva su W e tmp rispettivamente le decine e le unità del valore presente su W
 		pagesel	    split_number
 		call	    split_number
 		
@@ -186,18 +186,19 @@ split_number
 		
 		;Esempio: 25/10 = 2 con resto di 5, dove 2 sono le decine e 5 sono le unità
 		
+		;azzero tmp2
 		clrf	tmp2
 
 loop_div_10
 		
 		;salvo il contenuto di W su tmp
-		movwf	tmp	;la prima volta che si entra nel loop su W c'è il numero da formattare, mentre le volte successive ci sarà il risultato della sottrazione del loop precedente
+		movwf	tmp	;la prima volta che si entra nel loop, su W c'è il numero da formattare, mentre le volte successive ci sarà il risultato della sottrazione del loop precedente
 		
 		;sottraggo dal numero da formattare 10(number - 10)
 		movlw	.10
 		subwf	tmp, w	    ;lo salvo in w, in modo da non modificare il contenuto di tmp, nel caso in cui il risultato dell'operazione sia negativo
 		
-		;controllo che il risultato sia maggiore di 0, andando a controllare il bit di carry(prestito). 
+		;controllo che il risultato sia maggiore di 0, andando a verificare il bit di carry(prestito). 
 		;Se C=0, allora il risultato è minore di zero, pertanto bisogna smettere di sottrarre.
 		btfss	STATUS, C
 		goto end_div

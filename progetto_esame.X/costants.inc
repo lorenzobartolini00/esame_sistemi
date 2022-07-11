@@ -5,7 +5,7 @@
 ;Timer0 viene utilizzato per il debouncing. L'oscillatore interno ha una frequenza di 8MHz e la frequenza scelta come sorgente per il timer è Fosc/4.
 ;Avendo scelto un PS di 256, il periodo Ttick è pari a 256/(8MHz/4) = 128us.
 ;Siccome il tempo di debouncing è di 10ms e x:10ms = 1:128us, allora x = 10ms/256us = 78 tick. 
-;Pertanto la costante da caricare sul timer0 sarà (.256-.39)
+;Pertanto la costante da caricare sul timer0 sarà (.256-.78)
 
 tmr_10ms    equ	   (.256-.78)
 
