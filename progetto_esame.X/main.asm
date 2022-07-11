@@ -20,7 +20,7 @@
 	extern	start_timer, toggle_led, reload_tmr1, increment_cronometer  ;definite nel file functions.asm
 	
 	;variabili esportate
-	global printBuff, uartCount, flags, portb_prev, curr_sec, curr_min
+	global printBuff, flags, portb_prev, curr_sec, curr_min, byte_count
 
 ;-----------------------------------------------------------------------------------------------
 	
@@ -35,8 +35,8 @@ portb_prev	res    .1
 		    
     ; variabili in RAM(memoria NON condivisa)
 		udata
-printBuff	res    .6	;Riservo 6 byte, anche se serviranno soltanto 3 byte
-uartCount       res    .1  ; numero di byte rimasti da stampare
+printBuff	 res    .6	;Riservo 6 byte, anche se serviranno soltanto 3 byte
+byte_count       res    .1	;Numero di byte rimasti da trasmettere
     
 
 ;-----------------------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ start
 		;inizialmente la cpu può andare in sleep
 		bsf flags, CAN_SLEEP
 		
-		;il cronometro ancora non è partito
+		;la trasmissione non è in corso
 		bcf flags, TX_ON
 		
 		;azzero i contatori dei minuti e dei secondi
@@ -111,12 +111,9 @@ wait_sleep
 		btfss flags, CAN_SLEEP
 		goto wait_sleep
 		
-		;TRMT = 1 -> Shift Register empty
-		;TRMT = 0 -> Shift Register full
-		;banksel TXSTA
-		;la cpu non va in sleep se TRMT = 0, perchè la trasmissione non è terminata
-		;btfss TXSTA, TRMT
-		;goto wait_sleep
+		;la cpu non può andare in sleep se la trasmissione non è terminata
+		btfsc	flags, TX_ON
+		goto	wait_sleep
 		
 		;disabilito global interrupt enable
 		bcf INTCON, GIE
@@ -129,7 +126,7 @@ go_sleep
 wake_up		
 		;accendo il led di sleep
 		banksel PORTD
-		bsf PORTD, LED_D3
+		bsf PORTD, 0x02
 		
 		;una volta risvegliato dall'interrupt, riabilito il GIE per entrare nella ISR
 		bsf INTCON, GIE
@@ -155,11 +152,15 @@ initHw
 	;0 -> pulsante premuto
 	;il pulsante che vogliamo utilizzare è RB0
 	setRegK	TRISB, 0xFF
+	setRegK WPUB, B'00001111'
 	;setto come input anche PORTA e PORTE
 	movlw	0xFF
 	movwf	TRISA
-	movwf	TRISC
 	movwf	TRISE
+	
+	
+	setReg0 PORTC
+	setRegK TRISC, B'10111111'
 	
 	;disattivo input analogico su tutti i pin di PORTB
 	setReg0	ANSELH
@@ -201,7 +202,7 @@ initHw
 	;TXEN = 1 -> trasmissione abilitata
 	;SYNC = 0 -> Asynchrnous mode
 	;SENDB = 0 -> Sync Break transmission completed
-	;BRGH = 1 -> sabilito modalità High speed per la generazione del bode rate
+	;BRGH = 1 -> abilito modalità High speed per la generazione del bode rate
 	;TMRT read only
 	;TX9D = 0 -> nono bit a zero
 	setRegK TXSTA, B'00100100'
@@ -225,5 +226,7 @@ initHw
 	;BRGH = 1
 	;BRG16 = 0
 	setRegK SPBRG, .25
+	
+	return
 	
     end

@@ -3,9 +3,9 @@
 		#include "costants.inc"			;definizione di costanti
 		
 		;label importate(variabili)
-		extern	printBuff, uartCount, flags, portb_prev
+		extern	printBuff, flags, portb_prev, byte_count
 		;label importate(funzioni)
-		extern toggle_led, reload_tmr1, increment_cronometer, start_timer
+		extern toggle_led, reload_tmr1, increment_cronometer, start_timer, format_data, prepare_transmission
 	
 		;variabili condivise
 		udata_shr
@@ -22,6 +22,7 @@ irq		code	0x0004
 		movwf	status_temp		
 		movf	PCLATH,w		
 		movwf	pclath_temp
+		
 test_timer0
 		;controllo se l'interrupt è stato generato dallo scadere del timer0, utilizzato per il debouncing
 		btfss INTCON, T0IE
@@ -96,10 +97,10 @@ test_timer1
 		;controllo se il timer 1 è scaduto
 		banksel	PIE1
 		btfss	PIE1, TMR1IE
-		goto irq_end
+		goto test_usart
 		banksel	PIR1
 		btfss	PIR1, TMR1IF
-		goto irq_end
+		goto test_usart
 		
 		;ricarico il timer
 		pagesel reload_tmr1
@@ -114,10 +115,66 @@ test_timer1
 		pagesel increment_cronometer
 		call	increment_cronometer
 		
+		;chiamo funzione che scrive il valore del cronometro su printBuff
+		pagesel	format_data
+		call format_data
+		
+		;copio la costante 5 in w, siccome dovrò trasmettere 5 byte
+		movlw	.5
+		
+		;chiamo funzione che prepara la trasmissione dei dati
+		pagesel	prepare_transmission
+		call	prepare_transmission
+		
 		goto irq_end
 		
 test_usart
+		;controllo se il buffer si è svuotato
+		banksel PIE1
+		btfss PIE1, TXIE
+		goto irq_end
+		banksel PIR1
+		btfss PIR1, TXIF
+		goto irq_end
+		
+		;toggle led di conteggio
+		pagesel	toggle_led
+		movlw	0x08
+		call	toggle_led
+		
+		;in questo caso siamo pronti ad iniziare una nuova trasmissione
+		
+		;controllo che ci siano ancora byte da trasmettere
+		banksel byte_count
+		movf	byte_count, w
+		
+		;se il bit Z del registro status è settato, significa che byte_count è a zero e non ci sono più byte da trasmettere
+		btfsc	STATUS, Z
+		goto	uart_tx_end
+		
+		;se ho ancora byte da trasmettere, li recupero dal buffer, andando a leggere il registro INDF: indirizzamento indiretto di printBuff
+		movf	INDF, w
+		
+		;ora copio il byte contenuto in printBuff nel registro TXREG, causando l'inizio della trasmissione
+		banksel	TXREG
+		movwf	TXREG
+		
+		;incremento il registro FSR, in modo da andare a puntare al byte successivo di printBuff
+		incf	FSR, f
+		
+		;decremento il contatore
+		banksel	byte_count
+		decf	byte_count, f
+		
+		goto irq_end
 
+uart_tx_end    
+		;resetto ilbit di flag. In questo modo il micro può tornare in sleep
+		bcf	flags, TX_ON
+		
+		;disabilito l'interrupt enable, siccome i byte da trasmettere sono terminati
+		banksel	PIE1
+		bcf	PIE1, TXIE
 		
 irq_end
 		;ripristino del contesto
