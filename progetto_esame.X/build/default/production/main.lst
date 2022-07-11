@@ -1,4 +1,4 @@
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE  1
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE  1
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -57,7 +57,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00006 ;Avendo scelto un PS di 256, il periodo Ttick è pari a 256/(8MHz/4) = 128us.
                       00007 ;Siccome il tempo di debouncing è di 10ms e x:10ms = 1:128us, allora x = 10ms/256us = 78 tick. 
                       00008 ;Pertanto la costante da caricare sul timer0 sarà (.256-.39)
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE  2
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE  2
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -93,8 +93,8 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 2008   3EFF           00017         __CONFIG _CONFIG2, _BOR21V
                       00018         
                       00019         ;label definite esternamente
-  0000                00020         extern  start_timer, toggle_led, reload_tmr1, increment_cronometer  ;definite nel file functions
-                            .asm
+  0000                00020         extern  start_timer, toggle_led, reload_tmr1, increment_chronometer, format_data, prepare_transm
+                            ission  ;definite nel file functions.asm
                       00021         
                       00022         ;variabili esportate
   0000                00023         global printBuff, flags, portb_prev, curr_sec, curr_min, byte_count
@@ -116,7 +116,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
 0006                  00037 byte_count       res    .1      ;Numero di byte rimasti da trasmettere
 0007                  00038 curr_sec       res    .1        ;secondi
 0008                  00039 curr_min       res    .1        ;minuti
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE  3
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE  3
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -175,7 +175,7 @@ LOC  OBJECT CODE     LINE SOURCE TEXT
                       00090 
                       00091 ;inizializzo timer 1
                       00092                 
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE  4
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE  4
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
@@ -196,218 +196,248 @@ Message[302]: Register in operand not in bank 0.  Ensure that bank bits are corr
                       00104                 
                       00105                 ;abilito periferical interrupt enable
 001F   170B           00106                 bsf INTCON, PEIE
-0020                  00107 main_loop
-                      00108                 
-0020                  00109 wait_sleep
-                      00110                 ;abilito gloabal interrupt enable
-0020   178B           00111                 bsf INTCON, GIE
-                      00112                 
-                      00113                 ;la cpu non va in sleep se can_sleep = 0
-0021   1C00           00114                 btfss flags, CAN_SLEEP
-0022   2???           00115                 goto wait_sleep
-                      00116                 
-                      00117                 ;la cpu non può andare in sleep se la trasmissione non è terminata
-0023   1880           00118                 btfsc   flags, TX_ON
-0024   2???           00119                 goto    wait_sleep
+                      00107                 
+                      00108                 ;abilito global interrupt enable
+0020   178B           00109                 bsf INTCON, GIE
+                      00110 
+                      00111 
+                      00112 ;trasmetto il valore 00:00
+                      00113                 
+                      00114                 ;chiamo funzione che scrive il valore del cronometro su printBuff
+0021   ???? ????      00115                 pagesel format_data
+0023   2???           00116                 call format_data
+                      00117                 
+                      00118                 ;copio la costante 6 in w, siccome dovrò trasmettere 6 byte -> 'm' + 'm' + ':' + 's' + '
+                            s' + 'invio'
+0024   3006           00119                 movlw   .6
                       00120                 
-                      00121                 ;siccome il flag TX_ON viene resettato prima che la trasmissione sia realmente terminata
+                      00121                 ;chiamo funzione che prepara la trasmissione dei dati
+0025   ???? ????      00122                 pagesel prepare_transmission
+0027   2???           00123                 call    prepare_transmission
+0028                  00124 main_loop
+                      00125                 
+0028                  00126 wait_sleep
+                      00127                 ;disabilito  global interrupt enable
+0028   138B           00128                 bcf INTCON, GIE
+                      00129                         
+                      00130                 ;la cpu non può andare in sleep se can_sleep = 0
+0029   1800           00131                 btfsc flags, CAN_SLEEP
+002A   2???           00132                 goto test_tx
+                      00133                 
+002B   2???           00134                 goto no_sleep
+002C                  00135 test_tx         
+                      00136                 ;la cpu non può andare in sleep se la trasmissione non è terminata
+002C   1C80           00137                 btfss   flags, TX_ON
+002D   2???           00138                 goto    test_sr
+                      00139                 
+002E   2???           00140                 goto no_sleep
+002F                  00141 test_sr         
+                      00142                 ;siccome il flag TX_ON viene resettato prima che la trasmissione sia realmente terminata
                             , occorre controllare se lo shift register è realmente vuoto
-                      00122                 
-                      00123                 ;il bit TRMT indica lo stato dello shift register. Se lo shift register è vuoto, il bit 
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00143                 
+                      00144                 ;il bit TRMT indica lo stato dello shift register. Se lo shift register è vuoto, il bit 
                             è settato
-0025   1683 1303      00124                 banksel     TXSTA
+002F   1683 1303      00145                 banksel     TXSTA
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0027   1C98           00125                 btfss       TXSTA, TRMT
-0028   2???           00126                 goto wait_sleep
-                      00127                 
-                      00128                 
-                      00129                 ;disabilito global interrupt enable
-0029   138B           00130                 bcf INTCON, GIE
-002A                  00131 go_sleep
-                      00132                 ;spengo il led di sleep
-002A   1283 1303      00133                 banksel PORTD
-002C   1108           00134                 bcf PORTD, 0x02
-                      00135                 
-002D   0063           00136                 sleep
-002E                  00137 wake_up         
-                      00138                 ;accendo il led di sleep
-002E   1283 1303      00139                 banksel PORTD
-0030   1508           00140                 bsf PORTD, 0x02
-                      00141                 
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE  5
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
-                      00142                 ;una volta risvegliato dall'interrupt, riabilito il GIE per entrare nella ISR
-0031   178B           00143                 bsf INTCON, GIE
-                      00144                 
-0032   2???           00145                 goto main_loop  
-                      00146 ;-----------------------------------------------------------------------------------------------
-                      00147                 
-0033                  00148 initHw
-                      00149 ; Scelgo la frequenza del clock di sistema
-                      00150                 
-                      00151         setRegK OSCCON, B'01110001' ; 8 MHz internal oscillator 
-0033   3071               M                 movlw B'01110001'
-0034   1683 1303          M                 banksel OSCCON
+0031   1898           00146                 btfsc       TXSTA, TRMT
+0032   2???           00147                 goto go_sleep
+                      00148 
+0033                  00149 no_sleep
+                      00150                 ;abilito global interrupt enable
+0033   178B           00151                 bsf INTCON, GIE
+                      00152                 
+0034   2???           00153                 goto    wait_sleep
+0035                  00154 go_sleep
+                      00155                 ;spengo il led di sleep
+0035   1283 1303      00156                 banksel PORTD
+0037   1108           00157                 bcf PORTD, 0x02
+                      00158                 
+0038   0063           00159                 sleep
+0039                  00160 wake_up         
+                      00161                 ;accendo il led di sleep
+0039   1283 1303      00162                 banksel PORTD
+003B   1508           00163                 bsf PORTD, 0x02
+                      00164                 
+                      00165                 ;una volta risvegliato dall'interrupt, riabilito il GIE per entrare nella ISR
+003C   178B           00166                 bsf INTCON, GIE
+                      00167                 
+003D   2???           00168                 goto main_loop  
+                      00169 ;-----------------------------------------------------------------------------------------------
+                      00170                 
+003E                  00171 initHw
+                      00172 ; Scelgo la frequenza del clock di sistema
+                      00173                 
+                      00174         setRegK OSCCON, B'01110001' ; 8 MHz internal oscillator 
+003E   3071               M                 movlw B'01110001'
+003F   1683 1303          M                 banksel OSCCON
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0036   008F               M                 movwf OSCCON
-                      00152         
-                      00153 ;Interrupt
-0037   018B           00154         clrf    INTCON  ;tutti gli interrupt sono disabilitati
-                      00155         
-                      00156 ;Inizializzazione pulsanti PORTB
-                      00157                 
-                      00158         ;setto i pin di PORTB come output(tutti e quattro i pulsanti). 
-                      00159         ;0 -> output
-                      00160         ;1 -> input
-                      00161         
-                      00162         ;1 -> pulsante rilasciato
-                      00163         ;0 -> pulsante premuto
-                      00164         ;il pulsante che vogliamo utilizzare è RB0
-                      00165         setRegK TRISB, 0xFF
-0038   30FF               M                 movlw 0xFF
-0039   1683 1303          M                 banksel TRISB
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-003B   0086               M                 movwf TRISB
-                      00166         setRegK WPUB, B'00001111'
-003C   300F               M                 movlw B'00001111'
-003D   1683 1303          M                 banksel WPUB
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-003F   0095               M                 movwf WPUB
-                      00167         ;setto come input anche PORTA e PORTE
-0040   30FF           00168         movlw   0xFF
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0041   0085           00169         movwf   TRISA
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0042   0089           00170         movwf   TRISE
-                      00171         
-                      00172         
-                      00173         setReg0 PORTC
-0043   1283 1303          M                     banksel PORTC
-0045   0187               M                     clrf PORTC
-                      00174         setRegK TRISC, B'10111111'
-0046   30BF               M                 movlw B'10111111'
-0047   1683 1303          M                 banksel TRISC
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0049   0087               M                 movwf TRISC
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE  6
-
-
-LOC  OBJECT CODE     LINE SOURCE TEXT
-  VALUE
-
+0041   008F               M                 movwf OSCCON
                       00175         
-                      00176         ;disattivo input analogico su tutti i pin di PORTB
-                      00177         setReg0 ANSELH
-004A   1683 1703          M                     banksel ANSELH
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-004C   0189               M                     clrf ANSELH
+                      00176 ;Interrupt
+0042   018B           00177         clrf    INTCON  ;tutti gli interrupt sono disabilitati
                       00178         
-                      00179         ;abilito l'interrupt on change sul pulsante RB0 di PORTB
-                      00180         setRegK IOCB, 0x01
-004D   3001               M                 movlw 0x01
-004E   1683 1303          M                 banksel IOCB
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0050   0096               M                 movwf IOCB
-                      00181         
-                      00182 ;Inizializzazione LED
-                      00183         
-                      00184         ;setto i pin da 3 a 0 di PORTD come output
-                      00185         setRegK TRISD, 0xF0
-0051   30F0               M                 movlw 0xF0
-0052   1683 1303          M                 banksel TRISD
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0054   0088               M                 movwf TRISD
-                      00186         
-                      00187 ;Inizializzazione timer0
-                      00188          
-                      00189         ;#RBPU = 0 -> pull up di portb attivi
-                      00190         ;INTEDG = 0 -> interrupt sul falling edge
-                      00191         ;T0CS = 0 -> sorgente di clock interna Fosc/4
-                      00192         ;T0SE = 0 -> incremento sul fronte di salita(irrilevante, siccome utilizzo sorgente interna)
-                      00193         ;PSA = 0 -> prescaler assegnato al timer0
-                      00194         ;PS<2:0> = 111 -> prescaler a 256
-                      00195         setRegK OPTION_REG, B'01000111'
-0055   3047               M                 movlw B'01000111'
-0056   1683 1303          M                 banksel OPTION_REG
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0058   0081               M                 movwf OPTION_REG
-                      00196         
-                      00197 ;Inizializzazione timer1
-                      00198         
-                      00199         ;T1GINV = 0 -> non rilevante, siccome il gate è disabilitato
-                      00200         ;TMR1GE = 0 -> gate disabilitato
-                      00201         ;T1CKPS<1:0> = 00 -> prescaler a 1:1
-                      00202         ;T1OSCEN = 1 -> oscillatore LP abilitato
-                      00203         ;#T1SYNC = 1 -> sincronizzazione disabilitata(il timer deve lavorare anche in sleep)
-                      00204         ;TMR1CS = 1 -> seleziono sorgente esterna, oscillatore LP, dato che quando il micro è in sleep i
-                            l timer deve continuare a contare
-                      00205         ;TMR1ON = 0 -> timer è disattivato, verrà attivato al momento opportuno
-                      00206         setRegK T1CON, B'00001110'
-0059   300E               M                 movlw B'00001110'
-005A   1283 1303          M                 banksel T1CON
-005C   0090               M                 movwf T1CON
-                      00207         
-                      00208         
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE  7
+                      00179 ;Inizializzazione pulsanti PORTB
+                      00180                 
+                      00181         ;setto i pin di PORTB come output(tutti e quattro i pulsanti). 
+                      00182         ;0 -> output
+                      00183         ;1 -> input
+                      00184         
+                      00185         ;1 -> pulsante rilasciato
+                      00186         ;0 -> pulsante premuto
+                      00187         ;il pulsante che vogliamo utilizzare è RB0
+                      00188         setRegK TRISB, 0xFF
+0043   30FF               M                 movlw 0xFF
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE  6
 
 
 LOC  OBJECT CODE     LINE SOURCE TEXT
   VALUE
 
-                      00209 ;Configuro modulo EUSART
-                      00210         
-                      00211         ;CSRC = 0 -> don't care in Async mode
-                      00212         ;TX9 = 0 -> trasmissione nono bit disabilitato
-                      00213         ;TXEN = 1 -> trasmissione abilitata
-                      00214         ;SYNC = 0 -> Asynchrnous mode
-                      00215         ;SENDB = 0 -> Sync Break transmission completed
-                      00216         ;BRGH = 1 -> abilito modalità High speed per la generazione del bode rate
-                      00217         ;TMRT read only
-                      00218         ;TX9D = 0 -> nono bit a zero
-                      00219         setRegK TXSTA, B'00100100'
-005D   3024               M                 movlw B'00100100'
-005E   1683 1303          M                 banksel TXSTA
+0044   1683 1303          M                 banksel TRISB
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0060   0098               M                 movwf TXSTA
-                      00220         
-                      00221         ;SPEN = 1 -> porta seriale abilitata
-                      00222         ;RX9 = 0 -> ricezione nono bit disabilitato
-                      00223         ;SREN = 0 -> ricezione continua(non utilizzata)
-                      00224         ;CREN = 0 -> disabilita ricezione(non utilizzata)
-                      00225         ;ADDEN = 0 -> don't care
-                      00226         ;FERR read only
-                      00227         ;OERR read only
-                      00228         ;RX9D = 0 -> nono bit a zero
-                      00229         setRegK RCSTA, B'10000000'
-0061   3080               M                 movlw B'10000000'
-0062   1283 1303          M                 banksel RCSTA
-0064   0098               M                 movwf RCSTA
+0046   0086               M                 movwf TRISB
+                      00189         setRegK WPUB, B'00001111'
+0047   300F               M                 movlw B'00001111'
+0048   1683 1303          M                 banksel WPUB
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+004A   0095               M                 movwf WPUB
+                      00190         ;setto come input anche PORTA e PORTE
+004B   30FF           00191         movlw   0xFF
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+004C   0085           00192         movwf   TRISA
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+004D   0089           00193         movwf   TRISE
+                      00194         
+                      00195         
+                      00196         setReg0 PORTC
+004E   1283 1303          M                     banksel PORTC
+0050   0187               M                     clrf PORTC
+                      00197         setRegK TRISC, B'10111111'
+0051   30BF               M                 movlw B'10111111'
+0052   1683 1303          M                 banksel TRISC
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0054   0087               M                 movwf TRISC
+                      00198         
+                      00199         ;disattivo input analogico su tutti i pin di PORTB
+                      00200         setReg0 ANSELH
+0055   1683 1703          M                     banksel ANSELH
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0057   0189               M                     clrf ANSELH
+                      00201         
+                      00202         ;abilito l'interrupt on change sul pulsante RB0 di PORTB
+                      00203         setRegK IOCB, 0x01
+0058   3001               M                 movlw 0x01
+0059   1683 1303          M                 banksel IOCB
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+005B   0096               M                 movwf IOCB
+                      00204         
+                      00205 ;Inizializzazione LED
+                      00206         
+                      00207         ;setto i pin da 3 a 0 di PORTD come output
+                      00208         setRegK TRISD, 0xF0
+005C   30F0               M                 movlw 0xF0
+005D   1683 1303          M                 banksel TRISD
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+005F   0088               M                 movwf TRISD
+                      00209         
+                      00210 ;Inizializzazione timer0
+                      00211          
+                      00212         ;#RBPU = 0 -> pull up di portb attivi
+                      00213         ;INTEDG = 0 -> interrupt sul falling edge
+                      00214         ;T0CS = 0 -> sorgente di clock interna Fosc/4
+                      00215         ;T0SE = 0 -> incremento sul fronte di salita(irrilevante, siccome utilizzo sorgente interna)
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00216         ;PSA = 0 -> prescaler assegnato al timer0
+                      00217         ;PS<2:0> = 111 -> prescaler a 256
+                      00218         setRegK OPTION_REG, B'01000111'
+0060   3047               M                 movlw B'01000111'
+0061   1683 1303          M                 banksel OPTION_REG
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0063   0081               M                 movwf OPTION_REG
+                      00219         
+                      00220 ;Inizializzazione timer1
+                      00221         
+                      00222         ;T1GINV = 0 -> non rilevante, siccome il gate è disabilitato
+                      00223         ;TMR1GE = 0 -> gate disabilitato
+                      00224         ;T1CKPS<1:0> = 00 -> prescaler a 1:1
+                      00225         ;T1OSCEN = 1 -> oscillatore LP abilitato
+                      00226         ;#T1SYNC = 1 -> sincronizzazione disabilitata(il timer deve lavorare anche in sleep)
+                      00227         ;TMR1CS = 1 -> seleziono sorgente esterna, oscillatore LP, dato che quando il micro è in sleep i
+                            l timer deve continuare a contare
+                      00228         ;TMR1ON = 0 -> timer è disattivato, verrà attivato al momento opportuno
+                      00229         setRegK T1CON, B'00001110'
+0064   300E               M                 movlw B'00001110'
+0065   1283 1303          M                 banksel T1CON
+0067   0090               M                 movwf T1CON
                       00230         
-                      00231         ;BRG16 = 0 -> Baud Rate generator ad 8 bit
-                      00232         setReg0 BAUDCTL
-0065   1683 1703          M                     banksel BAUDCTL
-Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-0067   0187               M                     clrf BAUDCTL
+                      00231         
+                      00232 ;Configuro modulo EUSART
                       00233         
-                      00234         ;imposto il bode rate.
-                      00235         ;bode_rate = 19.2kHz
-                      00236         ;SYNC = 0
-                      00237         ;BRGH = 1
-                      00238         ;BRG16 = 0
-                      00239         setRegK SPBRG, .25
-0068   3019               M                 movlw .25
-0069   1683 1303          M                 banksel SPBRG
+                      00234         ;CSRC = 0 -> don't care in Async mode
+                      00235         ;TX9 = 0 -> trasmissione nono bit disabilitato
+                      00236         ;TXEN = 1 -> trasmissione abilitata
+                      00237         ;SYNC = 0 -> Asynchrnous mode
+                      00238         ;SENDB = 0 -> Sync Break transmission completed
+                      00239         ;BRGH = 1 -> abilito modalità High speed per la generazione del bode rate
+                      00240         ;TMRT read only
+                      00241         ;TX9D = 0 -> nono bit a zero
+                      00242         setRegK TXSTA, B'00100100'
+0068   3024               M                 movlw B'00100100'
+0069   1683 1303          M                 banksel TXSTA
 Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
-006B   0099               M                 movwf SPBRG
-                      00240         
-006C   0008           00241         return
-                      00242         
-2CF4 3EFF             00243     end
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE  8
+006B   0098               M                 movwf TXSTA
+                      00243         
+                      00244         ;SPEN = 1 -> porta seriale abilitata
+                      00245         ;RX9 = 0 -> ricezione nono bit disabilitato
+                      00246         ;SREN = 0 -> ricezione continua(non utilizzata)
+                      00247         ;CREN = 0 -> disabilita ricezione(non utilizzata)
+                      00248         ;ADDEN = 0 -> don't care
+                      00249         ;FERR read only
+                      00250         ;OERR read only
+                      00251         ;RX9D = 0 -> nono bit a zero
+                      00252         setRegK RCSTA, B'10000000'
+006C   3080               M                 movlw B'10000000'
+006D   1283 1303          M                 banksel RCSTA
+006F   0098               M                 movwf RCSTA
+                      00253         
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE  8
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00254         ;BRG16 = 0 -> Baud Rate generator ad 8 bit
+                      00255         setReg0 BAUDCTL
+0070   1683 1703          M                     banksel BAUDCTL
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0072   0187               M                     clrf BAUDCTL
+                      00256         
+                      00257         ;imposto il bode rate.
+                      00258         ;bode_rate = 19.2kHz
+                      00259         ;SYNC = 0
+                      00260         ;BRGH = 1
+                      00261         ;BRG16 = 0
+                      00262         setRegK SPBRG, .25
+0073   3019               M                 movlw .25
+0074   1683 1303          M                 banksel SPBRG
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0076   0099               M                 movwf SPBRG
+                      00263         
+0077   0008           00264         return
+                      00265         
+2CF4 3EFF             00266     end
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE  9
 
 
 SYMBOL TABLE
@@ -466,7 +496,7 @@ BRG6                              00000006
 BRG7                              00000007
 BRG8                              00000000
 BRG9                              00000001
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE  9
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE 10
 
 
 SYMBOL TABLE
@@ -525,7 +555,7 @@ CCPR2L                            0000001B
 CHS0                              00000002
 CHS1                              00000003
 CHS2                              00000004
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE 10
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE 11
 
 
 SYMBOL TABLE
@@ -584,7 +614,7 @@ INTEDG                            00000006
 INTF                              00000001
 IOCB                              00000096
 IOCB0                             00000000
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE 11
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE 12
 
 
 SYMBOL TABLE
@@ -643,7 +673,7 @@ P1M0                              00000006
 P1M1                              00000007
 PCL                               00000002
 PCLATH                            0000000A
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE 12
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE 13
 
 
 SYMBOL TABLE
@@ -702,7 +732,7 @@ RB7                               00000007
 RBIE                              00000003
 RBIF                              00000000
 RC0                               00000000
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE 13
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE 14
 
 
 SYMBOL TABLE
@@ -761,7 +791,7 @@ SRCON                             00000185
 SREN                              00000005
 SSPADD                            00000093
 SSPBUF                            00000013
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE 14
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE 15
 
 
 SYMBOL TABLE
@@ -820,7 +850,7 @@ TMR2IF                            00000001
 TMR2ON                            00000002
 TOUTPS0                           00000003
 TOUTPS1                           00000004
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE 15
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE 16
 
 
 SYMBOL TABLE
@@ -879,7 +909,7 @@ TX8_9                             00000006
 TX9                               00000006
 TX9D                              00000000
 TXD8                              00000000
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE 16
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE 17
 
 
 SYMBOL TABLE
@@ -938,7 +968,7 @@ _BOREN_SBODEN                     00003DFF
 _BOR_NSLEEP                       00003EFF
 _BOR_OFF                          00003CFF
 _BOR_ON                           00003FFF
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE 17
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE 18
 
 
 SYMBOL TABLE
@@ -997,7 +1027,7 @@ _WRT_HALF                         000039FF
 _WRT_OFF                          00003FFF
 _XT_OSC                           00003FF9
 __16F887                          00000001
-MPASM 5.86                          MAIN.ASM   7-11-2022  16:34:00         PAGE 18
+MPASM 5.86                          MAIN.ASM   7-11-2022  17:10:48         PAGE 19
 
 
 SYMBOL TABLE
@@ -1007,22 +1037,27 @@ byte_count                        00000006
 curr_min                          00000008
 curr_sec                          00000007
 flags                             00000000
-go_sleep                          0000002A
-increment_cronometer              00000000
-initHw                            00000033
-main_loop                         00000020
+format_data                       00000000
+go_sleep                          00000035
+increment_chronometer             00000000
+initHw                            0000003E
+main_loop                         00000028
+no_sleep                          00000033
 portb_prev                        00000001
+prepare_transmission              00000000
 printBuff                         00000000
 reload_tmr1                       00000000
 setReg0                           
 setRegK                           
 start                             00000000
 start_timer                       00000000
+test_sr                           0000002F
+test_tx                           0000002C
 tmr_10ms                          000000B2
 tmr_1s                            00008000
 toggle_led                        00000000
-wait_sleep                        00000020
-wake_up                           0000002E
+wait_sleep                        00000028
+wake_up                           00000039
 
 Errors   :     0
 Warnings :     0 reported,     0 suppressed

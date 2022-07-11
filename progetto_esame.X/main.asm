@@ -17,7 +17,7 @@
 	__CONFIG _CONFIG2, _BOR21V
 	
 	;label definite esternamente
-	extern	start_timer, toggle_led, reload_tmr1, increment_cronometer  ;definite nel file functions.asm
+	extern	start_timer, toggle_led, reload_tmr1, increment_chronometer, format_data, prepare_transmission  ;definite nel file functions.asm
 	
 	;variabili esportate
 	global printBuff, flags, portb_prev, curr_sec, curr_min, byte_count
@@ -104,30 +104,53 @@ start
 		
 		;abilito periferical interrupt enable
 		bsf INTCON, PEIE
+		
+		;abilito global interrupt enable
+		bsf INTCON, GIE
+
+
+;trasmetto il valore 00:00
+		
+		;chiamo funzione che scrive il valore del cronometro su printBuff
+		pagesel	format_data
+		call format_data
+		
+		;copio la costante 6 in w, siccome dovrò trasmettere 6 byte -> 'm' + 'm' + ':' + 's' + 's' + 'invio'
+		movlw	.6
+		
+		;chiamo funzione che prepara la trasmissione dei dati
+		pagesel	prepare_transmission
+		call	prepare_transmission
 main_loop
 		
 wait_sleep
-		;abilito gloabal interrupt enable
-		bsf INTCON, GIE
+		;disabilito  global interrupt enable
+		bcf INTCON, GIE
+			
+		;la cpu non può andare in sleep se can_sleep = 0
+		btfsc flags, CAN_SLEEP
+		goto test_tx
 		
-		;la cpu non va in sleep se can_sleep = 0
-		btfss flags, CAN_SLEEP
-		goto wait_sleep
+		goto no_sleep
+test_tx		
+		;la cpu non può andare in sleep se la trasmissione non è terminata(TX_ON = 1 -> trasmissione in corso)
+		btfss	flags, TX_ON
+		goto	test_sr
 		
-		;la cpu non può andare in sleep se la trasmissione non è terminata
-		btfsc	flags, TX_ON
-		goto	wait_sleep
-		
+		goto no_sleep
+test_sr		
 		;siccome il flag TX_ON viene resettato prima che la trasmissione sia realmente terminata, occorre controllare se lo shift register è realmente vuoto
 		
 		;il bit TRMT indica lo stato dello shift register. Se lo shift register è vuoto, il bit è settato
 		banksel	    TXSTA
-		btfss	    TXSTA, TRMT
-		goto wait_sleep
+		btfsc	    TXSTA, TRMT
+		goto go_sleep
+
+no_sleep
+		;abilito global interrupt enable
+		bsf INTCON, GIE
 		
-		
-		;disabilito global interrupt enable
-		bcf INTCON, GIE
+		goto	wait_sleep
 go_sleep
 		;spengo il led di sleep
 		banksel PORTD

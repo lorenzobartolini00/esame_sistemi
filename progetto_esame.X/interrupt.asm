@@ -5,7 +5,7 @@
 		;label importate(variabili)
 		extern	printBuff, flags, portb_prev, byte_count
 		;label importate(funzioni)
-		extern toggle_led, reload_tmr1, increment_cronometer, start_timer, format_data, prepare_transmission
+		extern toggle_led, reload_tmr1, increment_chronometer, start_timer, format_data, prepare_transmission
 	
 		;variabili condivise
 		udata_shr
@@ -112,8 +112,8 @@ test_timer1
 		call toggle_led
 		
 		;chiamo funzione che incrementa il conteggio del cronometro
-		pagesel increment_cronometer
-		call	increment_cronometer
+		pagesel increment_chronometer
+		call	increment_chronometer
 		
 		;chiamo funzione che scrive il valore del cronometro su printBuff
 		pagesel	format_data

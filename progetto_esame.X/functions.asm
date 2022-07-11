@@ -6,7 +6,7 @@
 		extern	curr_sec, curr_min, printBuff, byte_count, flags
 		
 		;funzioni esportate
-		global	start_timer, toggle_led, reload_tmr1, increment_cronometer, format_data, prepare_transmission
+		global	start_timer, toggle_led, reload_tmr1, increment_chronometer, format_data, prepare_transmission
 		
 		;variabili nella memoria di banco
 		    udata_shr
@@ -50,7 +50,7 @@ reload_tmr1
 
 		return
 
-increment_cronometer
+increment_chronometer
 		;incremento i secondi
 		banksel	curr_sec
 		incf	curr_sec
