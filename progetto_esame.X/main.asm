@@ -35,7 +35,7 @@ portb_prev	res    .1
 		    
     ; variabili in RAM(memoria NON condivisa)
 		udata
-printBuff	 res    .6	;Riservo 6 byte, anche se serviranno soltanto 3 byte
+printBuff	 res    .6	;Riservo 6 byte al buffer
 byte_count       res    .1	;Numero di byte rimasti da trasmettere
     
 
@@ -114,6 +114,14 @@ wait_sleep
 		;la cpu non può andare in sleep se la trasmissione non è terminata
 		btfsc	flags, TX_ON
 		goto	wait_sleep
+		
+		;siccome il flag TX_ON viene resettato prima che la trasmissione sia realmente terminata, occorre controllare se lo shift register è realmente vuoto
+		
+		;il bit TRMT indica lo stato dello shift register. Se lo shift register è vuoto, il bit è settato
+		banksel	    TXSTA
+		btfss	    TXSTA, TRMT
+		goto wait_sleep
+		
 		
 		;disabilito global interrupt enable
 		bcf INTCON, GIE

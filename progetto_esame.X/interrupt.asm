@@ -119,8 +119,8 @@ test_timer1
 		pagesel	format_data
 		call format_data
 		
-		;copio la costante 5 in w, siccome dovrò trasmettere 5 byte
-		movlw	.5
+		;copio la costante 6 in w, siccome dovrò trasmettere 6 byte -> 'm' + 'm' + ':' + 's' + 's' + 'invio'
+		movlw	.6
 		
 		;chiamo funzione che prepara la trasmissione dei dati
 		pagesel	prepare_transmission
@@ -136,11 +136,6 @@ test_usart
 		banksel PIR1
 		btfss PIR1, TXIF
 		goto irq_end
-		
-		;toggle led di conteggio
-		pagesel	toggle_led
-		movlw	0x08
-		call	toggle_led
 		
 		;in questo caso siamo pronti ad iniziare una nuova trasmissione
 		

@@ -89,17 +89,20 @@ format_data
 	
 	banksel	printBuff
 	
-	movlw	't'
+	movlw	'm'
 	movwf	(printBuff+0)
-	movlw	'e'
+	movlw	'm'
 	movwf	(printBuff+1)
-	movlw	's'
+	movlw	.58	;corrisponde al carattere ":" nella codifica ASCII
 	movwf	(printBuff+2)
-	movlw	't'
+	movlw	's'
 	movwf	(printBuff+3)
+	movlw	's'
+	movwf	(printBuff+4)
 	
-	;movlw	.58	;corrisponde al carattere ":" nella codifica ASCII
-	;movwf	(printBuff+4)
+	movlw .10         ; carattere invio
+	movwf (printBuff+5)
+	
 	
 	return
 	
