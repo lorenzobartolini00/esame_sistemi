@@ -21,6 +21,9 @@
 	
 	;variabili esportate
 	global printBuff, flags, portb_prev, curr_sec, curr_min, byte_count
+	
+	;direttiva che attiva i led di debug
+	;#define	DEBUG
 
 ;-----------------------------------------------------------------------------------------------
 	
@@ -85,7 +88,7 @@ start
 		
 		;accendo il led di debug e il led di sleep
 		banksel PORTD
-		movlw	B'00000101'
+		movlw	B'00000001'
 		movwf	PORTD
 
 ;inizializzo timer 1
@@ -152,15 +155,21 @@ no_sleep
 		
 		goto	wait_sleep
 go_sleep
-		;spengo il led di sleep
-		banksel PORTD
-		bcf PORTD, 0x02
+		#ifdef DEBUG
+		    ;spengo il led di sleep
+		    banksel PORTD
+		    bcf PORTD, 0x02
+		#endif
+		
 		
 		sleep
 wake_up		
-		;accendo il led di sleep
-		banksel PORTD
-		bsf PORTD, 0x02
+		#ifdef DEBUG
+		    ;accendo il led di sleep
+		    banksel PORTD
+		    bsf PORTD, 0x02
+		#endif
+		
 		
 		;una volta risvegliato dall'interrupt, riabilito il GIE per entrare nella ISR
 		bsf INTCON, GIE

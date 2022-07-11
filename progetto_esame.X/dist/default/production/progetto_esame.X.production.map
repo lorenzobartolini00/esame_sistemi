@@ -1,13 +1,13 @@
 MPLINK 5.09, LINKER
-Linker Map File - Created Mon Jul 11 17:10:49 2022
+Linker Map File - Created Mon Jul 11 17:30:17 2022
 
                                  Section Info
                   Section       Type    Address   Location Size(Bytes)
                 ---------  ---------  ---------  ---------  ---------
                rst_vector       code   0x000000    program   0x000006
-                      irq       code   0x000004    program   0x0000d4
-                   .cinit    romdata   0x00006e    program   0x000004
-                    .code       code   0x000070    program   0x0001a6
+                      irq       code   0x000004    program   0x0000cc
+                   .cinit    romdata   0x00006a    program   0x000004
+                    .code       code   0x00006c    program   0x00019a
 .config_2007_BUILD/DEFAULT/PRODUCTION/MAIN.O       code   0x002007    program   0x000002
 .config_2008_BUILD/DEFAULT/PRODUCTION/MAIN.O       code   0x002008    program   0x000002
                    .udata      udata   0x000020       data   0x000009
@@ -19,9 +19,9 @@ Linker Map File - Created Mon Jul 11 17:10:49 2022
                                Start         End      
                            ---------   ---------      
                             0x000000    0x000002      
-                            0x000004    0x000142      
+                            0x000004    0x000138      
                             0x002007    0x002008      
-            324 out of 8455 program addresses used, program memory utilization is 3%
+            314 out of 8455 program addresses used, program memory utilization is 3%
 
 
 
@@ -29,31 +29,31 @@ Linker Map File - Created Mon Jul 11 17:10:49 2022
                      Name    Address   Location    Storage File                     
                 ---------  ---------  ---------  --------- ---------                
                button_end   0x00002e    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
-                  end_div   0x00013f    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-            end_increment   0x00010f    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-              format_data   0x000110    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-                 go_sleep   0x0000a5    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-    increment_chronometer   0x0000ff    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-                   initHw   0x0000ae    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-                  irq_end   0x000067    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
-              loop_div_10   0x000138    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-                main_loop   0x000098    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-                 no_sleep   0x0000a3    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-     prepare_transmission   0x00012b    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-              reload_tmr1   0x0000f2    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-             split_number   0x000137    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-                    start   0x000070    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-              start_timer   0x0000e8    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+                  end_div   0x000135    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+            end_increment   0x000105    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+              format_data   0x000106    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+                 go_sleep   0x0000a1    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+    increment_chronometer   0x0000f5    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+                   initHw   0x0000a4    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+                  irq_end   0x000063    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
+              loop_div_10   0x00012e    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+                main_loop   0x000094    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+                 no_sleep   0x00009f    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+     prepare_transmission   0x000121    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+              reload_tmr1   0x0000e8    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+             split_number   0x00012d    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+                    start   0x00006c    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+              start_timer   0x0000de    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
               test_button   0x000012    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
-                  test_sr   0x00009f    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+                  test_sr   0x00009b    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
               test_timer0   0x000009    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
               test_timer1   0x000033    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
-                  test_tx   0x00009c    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-               test_usart   0x00004d    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
-               toggle_led   0x0000ee    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-              uart_tx_end   0x000063    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
-               wait_sleep   0x000098    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-                  wake_up   0x0000a9    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+                  test_tx   0x000098    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+               test_usart   0x000049    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
+               toggle_led   0x0000e4    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+              uart_tx_end   0x00005f    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
+               wait_sleep   0x000094    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+                  wake_up   0x0000a2    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
                byte_count   0x000026       data     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
                  curr_min   0x000028       data     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
                  curr_sec   0x000027       data     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
@@ -75,28 +75,28 @@ Linker Map File - Created Mon Jul 11 17:10:49 2022
               test_button   0x000012    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
                button_end   0x00002e    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
               test_timer1   0x000033    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
-               test_usart   0x00004d    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
-              uart_tx_end   0x000063    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
-                  irq_end   0x000067    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
-                    start   0x000070    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-               wait_sleep   0x000098    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-                main_loop   0x000098    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-                  test_tx   0x00009c    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-                  test_sr   0x00009f    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-                 no_sleep   0x0000a3    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-                 go_sleep   0x0000a5    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-                  wake_up   0x0000a9    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-                   initHw   0x0000ae    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
-              start_timer   0x0000e8    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-               toggle_led   0x0000ee    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-              reload_tmr1   0x0000f2    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-    increment_chronometer   0x0000ff    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-            end_increment   0x00010f    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-              format_data   0x000110    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-     prepare_transmission   0x00012b    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-             split_number   0x000137    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-              loop_div_10   0x000138    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
-                  end_div   0x00013f    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+               test_usart   0x000049    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
+              uart_tx_end   0x00005f    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
+                  irq_end   0x000063    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\interrupt.asm
+                    start   0x00006c    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+               wait_sleep   0x000094    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+                main_loop   0x000094    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+                  test_tx   0x000098    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+                  test_sr   0x00009b    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+                 no_sleep   0x00009f    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+                 go_sleep   0x0000a1    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+                  wake_up   0x0000a2    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+                   initHw   0x0000a4    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
+              start_timer   0x0000de    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+               toggle_led   0x0000e4    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+              reload_tmr1   0x0000e8    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+    increment_chronometer   0x0000f5    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+            end_increment   0x000105    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+              format_data   0x000106    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+     prepare_transmission   0x000121    program     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+             split_number   0x00012d    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+              loop_div_10   0x00012e    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
+                  end_div   0x000135    program     static C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\functions.asm
                 printBuff   0x000020       data     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
                byte_count   0x000026       data     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm
                  curr_sec   0x000027       data     extern C:\Users\Lori\Documents\MaterialeUniversità\SistemiElettronici\Codici\sistemi_elettronici\esame_sistemi\progetto_esame.X\main.asm

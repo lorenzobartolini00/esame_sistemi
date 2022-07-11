@@ -12,6 +12,9 @@
 w_temp          res    .1  ; salvataggio registri (context saving)
 status_temp     res    .1  ;  "             "                "
 pclath_temp	res    .1			; riserva un byte di memoria associato alla label pclath_temp
+	
+		;direttiva che attiva i led di debug
+		;#define	DEBUG
 		
 ;-----------------------------------------------------------------------------------------------
 ;interrupt service routine
@@ -75,10 +78,11 @@ test_button
 		btfss	portb_prev, 0
 		goto	button_end 
 		
-		;toggle led di debug
+		;toggle led del cronometro
 		movlw   0x01        ;Corrisponde alla costante 00000001
 		pagesel toggle_led
 		call toggle_led
+		
 		
 		;faccio il toggle del cronometro
 		banksel T1CON
@@ -106,10 +110,12 @@ test_timer1
 		pagesel reload_tmr1
 		call	reload_tmr1
 		
-		;toggle led timer
-		movlw   0x02        ;Corrisponde alla costante 00000010
-		pagesel toggle_led
-		call toggle_led
+		#ifdef	DEBUG
+		    ;toggle led debug
+		    movlw   0x02        ;Corrisponde alla costante 00000010
+		    pagesel toggle_led
+		    call toggle_led
+		#endif
 		
 		;chiamo funzione che incrementa il conteggio del cronometro
 		pagesel increment_chronometer
