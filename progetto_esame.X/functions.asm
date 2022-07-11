@@ -68,7 +68,7 @@ increment_cronometer
 
 		;incremento i minuti
 		banksel	curr_min
-		incf	curr_min, w
+		incf	curr_min
 
 		;se i minuti sono arrivati a 60, allora azzerali e return
 		movlw	.60
