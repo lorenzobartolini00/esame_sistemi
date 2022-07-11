@@ -129,7 +129,7 @@ test_timer1
 		goto irq_end
 		
 test_usart
-		;controllo se il buffer si è svuotato
+		;controllo se il buffer si è svuotato, cioè se la trasmissione precedente è terminata
 		banksel PIE1
 		btfss PIE1, TXIE
 		goto irq_end

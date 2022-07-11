@@ -26,8 +26,6 @@
 	
 ; variabili in RAM (shared RAM)
 		udata_shr
-curr_sec         res    .1
-curr_min         res    .1
 	 ;flags contiene due bit: TX_ON e CAN_SLEEP, che vengono utilizzati per controllare se la trasmissione è in corso
 	 ;e se la cpu può andare in sleep. La cpu non può andare in sleep fintanto che si sta facendo il debouncing
 flags		res    .1
@@ -37,6 +35,9 @@ portb_prev	res    .1
 		udata
 printBuff	 res    .6	;Riservo 6 byte al buffer
 byte_count       res    .1	;Numero di byte rimasti da trasmettere
+curr_sec       res    .1	;secondi
+curr_min       res    .1	;minuti
+       
     
 
 ;-----------------------------------------------------------------------------------------------
@@ -63,7 +64,9 @@ start
 		bcf flags, TX_ON
 		
 		;azzero i contatori dei minuti e dei secondi
+		banksel curr_sec
 		clrf	curr_sec
+		banksel curr_min
 		clrf	curr_min
 		
 ;inizializzo portb
