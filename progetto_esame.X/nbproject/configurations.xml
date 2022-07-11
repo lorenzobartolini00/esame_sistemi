@@ -14,6 +14,9 @@
                    projectFiles="true">
       <itemPath>main.asm</itemPath>
       <itemPath>macro.inc</itemPath>
+      <itemPath>interrupt.asm</itemPath>
+      <itemPath>functions.asm</itemPath>
+      <itemPath>costants.inc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -500,6 +503,8 @@
                   value=""/>
         <property key="warningmessagebreakoptions.warningmessages" value="holdstate"/>
       </Simulator>
+      <item path="costants.inc" ex="true" overriding="false">
+      </item>
       <item path="macro.inc" ex="true" overriding="true">
         <MPASMWIN-AS>
           <property key="cross.reference.file" value=""/>

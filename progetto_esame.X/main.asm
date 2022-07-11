@@ -10,10 +10,17 @@
     
 	#include	"p16f887.inc"	
 	#include "macro.inc"			; definizione di macro utili
+	#include "costants.inc"			;definizione di costanti
 	
 	; configuration bits
 	__CONFIG _CONFIG1, _INTRC_OSC_NOCLKOUT & _CP_OFF & _WDT_OFF & _BOR_OFF & _PWRTE_OFF & _LVP_OFF & _DEBUG_OFF & _CPD_OFF
 	__CONFIG _CONFIG2, _BOR21V
+	
+	;label definite esternamente
+	extern	start_timer, toggle_led, reload_tmr1, increment_cronometer  ;definite nel file functions.asm
+	
+	;variabili esportate
+	global printBuff, uartCount, flags, portb_prev, curr_sec, curr_min
 
 ;-----------------------------------------------------------------------------------------------
 	
@@ -21,33 +28,15 @@
 		udata_shr
 curr_sec         res    .1
 curr_min         res    .1
-	 ;flags contiene due bit: CRONO_ON e CAN_SLEEP, che vengono utilizzati per controllare se il cronometro 
-	 ;è attivo e se la cpu può andare in sleep. La cpu non può andare in sleep fintanto che si sta facendo il debouncing
+	 ;flags contiene due bit: TX_ON e CAN_SLEEP, che vengono utilizzati per controllare se la trasmissione è in corso
+	 ;e se la cpu può andare in sleep. La cpu non può andare in sleep fintanto che si sta facendo il debouncing
 flags		res    .1
-w_temp          res    .1  ; salvataggio registri (context saving)
-status_temp     res    .1  ;  "             "                "
-pclath_temp	res    .1			; riserva un byte di memoria associato alla label status_temp
 portb_prev	res    .1
 		    
     ; variabili in RAM(memoria NON condivisa)
 		udata
 printBuff	res    .6	;Riservo 6 byte, anche se serviranno soltanto 3 byte
 uartCount       res    .1  ; numero di byte rimasti da stampare
-
-	 ;definizioni costanti
-	 
-    ;Timer0 viene utilizzato per il debouncing. L'oscillatore interno ha una frequenza di 8MHz e la frequenza scelta come sorgente per il timer è Fosc/4.
-    ;Avendo scelto un PS di 256, il periodo Ttick è pari a 256/(8MHz/4) = 128us.
-    ;Siccome il tempo di debouncing è di 10ms e x:10ms = 1:128us, allora x = 10ms/256us = 78 tick. 
-    ;Pertanto la costante da caricare sul timer0 sarà (.256-.39)
-tmr_10ms    EQU	   (.256-.78)
-    ;Timer1 è utilizzato per il cronometro, che ha una risoluzione di 1 secondo.
-    ;Avendo scelto come sorgente per il timer1 quella dell'oscillatore esterno, che ha una frequenza di 36768KHz, e avendo impostato il PS a 1, 
-    ;il Ttick è pari a 1/36768KHz
-    ;Il tempo massimo che può raggiungere il timer1 con queste impostazioni è pari a Tmax = Ttick*65536 = 2s.
-    ;Pertanto il numero di incrementi che corrisponde ad 1s è pari alla metà degli incrementi massimi, ovvero 65536/2.
-tmr_1s	    EQU    (.65536-.32768)
-max_sec	    EQU   .60	
     
 
 ;-----------------------------------------------------------------------------------------------
@@ -65,34 +54,38 @@ start
 		pagesel initHw
 		call initHw
 		
+;inizializzo i bit di flag e i contatori
+		
 		;inizialmente la cpu può andare in sleep
 		bsf flags, CAN_SLEEP
 		
 		;il cronometro ancora non è partito
-		bcf flags, CRN_RUN
+		bcf flags, TX_ON
 		
 		;azzero i contatori dei minuti e dei secondi
 		clrf	curr_sec
 		clrf	curr_min
 		
+;inizializzo portb
+		
 		;leggo PORTB per annullare mismatch
 		banksel	PORTB
 		movf	PORTB, w	; legge PORTB eliminando condizione di mismatch
-		bcf INTCON, RBIF
-		bsf INTCON, RBIE
-		
-		;abilito interrupt da timer 1
-		banksel PIE1
-		bsf PIE1, TMR1IE
+		bcf INTCON, RBIF	;resetto interrupt flag
+		bsf INTCON, RBIE	;abilito interrupt portb
 		
 		;inizializzo portb_prev
 		movlw	0x01    ; Pulsante non premuto -> switch aperto -> Vdd -> Logic 1
 		movwf	portb_prev
 		
+;inizializzo i led
+		
 		;accendo il led di debug e il led di sleep
 		banksel PORTD
 		movlw	B'00000101'
 		movwf	PORTD
+
+;inizializzo timer 1
 		
 		;ricarico il timer
 		pagesel reload_tmr1
@@ -106,34 +99,31 @@ start
 		banksel PIE1
 		bsf     PIE1, TMR1IE
 		
-		;abilito gloabal interrupt enable
-		bsf INTCON, GIE
+		;abilito periferical interrupt enable
 		bsf INTCON, PEIE
 main_loop
 		
 wait_sleep
-		;disabilito il global interrupt enable: la cpu non può andare in interrupt nella fase che precede lo sleep
-		bcf INTCON, GIE
+		;abilito gloabal interrupt enable
+		bsf INTCON, GIE
 		
 		;la cpu non va in sleep se can_sleep = 0
-		btfsc flags, CAN_SLEEP
-		goto go_sleep
+		btfss flags, CAN_SLEEP
+		goto wait_sleep
 		
 		;TRMT = 1 -> Shift Register empty
 		;TRMT = 0 -> Shift Register full
 		;banksel TXSTA
 		;la cpu non va in sleep se TRMT = 0, perchè la trasmissione non è terminata
-		;btfsc TXSTA, TRMT
-		;goto go_sleep
+		;btfss TXSTA, TRMT
+		;goto wait_sleep
 		
-		;riabilito il global interrupt enable
-		bsf INTCON, GIE
-		
-		goto wait_sleep
+		;disabilito global interrupt enable
+		bcf INTCON, GIE
 go_sleep
 		;spengo il led di sleep
 		banksel PORTD
-		bcf PORTD, LED_D3
+		bcf PORTD, 0x02
 		
 		sleep
 wake_up		
@@ -144,199 +134,7 @@ wake_up
 		;una volta risvegliato dall'interrupt, riabilito il GIE per entrare nella ISR
 		bsf INTCON, GIE
 		
-		goto main_loop
-;-----------------------------------------------------------------------------------------------
-;interrupt service routine
-irq		code	0x0004
-		;salvataggio del contesto
-		movwf	w_temp		
-		swapf	STATUS,w		
-		movwf	status_temp		
-		movf	PCLATH,w		
-		movwf	pclath_temp
-test_timer0
-		;controllo se l'interrupt è stato generato dallo scadere del timer0, utilizzato per il debouncing
-		btfss INTCON, T0IE
-		goto test_button
-		btfss INTCON, T0IF
-		goto test_button
-		
-		;resetto l'interrupt flag e disabilito interrupt da timer 0
-		bcf INTCON, T0IF
-		bcf INTCON, T0IE
-		
-		;riabilito l'interrupt dei pulsanti.
-		bsf INTCON, RBIE
-		
-		;setto can_sleep
-		bsf flags, CAN_SLEEP
-		
-		goto irq_end
-test_button
-		btfss	INTCON, RBIF
-		goto	test_timer1
-		btfss	INTCON, RBIE
-		goto	test_timer1
-		
-		;leggo la porta per eliminare la condizione di mismatch
-		banksel	PORTB
-		movf	PORTB, w	; legge PORTB eliminando condizione di mismatch
-		bcf	INTCON, RBIF
-		
-		;controllo se c'è stato un cambiamento dello stato della porta
-		xorwf	portb_prev, w	
-		andlw	0x01	       
-		btfsc	STATUS,Z        
-		goto	button_end	
-		
-		;il pulsante 1 è stato premuto o rilasciato, iniziare il conteggio di debouncing
-		
-		;disabilito interrupt
-		bcf INTCON, RBIE
-		
-		;resetto can_sleep. Il micro non può andare in sleep durante il debouncing
-		bcf flags, CAN_SLEEP
-		
-		;faccio partire il timer 0 per il debouncing
-		movlw	tmr_10ms
-		pagesel start_timer
-		call    start_timer
-	
-		;se il bit 0 di portb_prev è a zero significa che il pulsante è stato premuto
-		btfss	portb_prev, 0
-		goto	button_end 
-		
-		;toggle led di debug
-		movlw   0x01        ;Corrisponde alla costante 00000001
-		pagesel toggle_led
-		call toggle_led
-		
-		;faccio il toggle del cronometro
-		banksel T1CON
-		movlw	0x01
-		xorwf   T1CON, f
-		
-button_end
-		; salva nuovo stato di PORTB su portb_prev
-		banksel PORTB
-		movf	PORTB, w
-		movwf	portb_prev
-
-		goto	irq_end	
-		
-test_timer1
-		;controllo se il timer 1 è scaduto
-		banksel	PIE1
-		btfss	PIE1, TMR1IE
-		goto irq_end
-		banksel	PIR1
-		btfss	PIR1, TMR1IF
-		goto irq_end
-		
-		;ricarico il timer
-		pagesel reload_tmr1
-		call	reload_tmr1
-		
-		;toggle led timer
-		movlw   0x02        ;Corrisponde alla costante 00000010
-		pagesel toggle_led
-		call toggle_led
-		
-		;chiamo funzione che incrementa il conteggio del cronometro
-		pagesel increment_cronometer
-		call	increment_cronometer
-		
-		goto irq_end
-		
-test_usart
-
-		
-irq_end
-		;ripristino del contesto
-		movf	pclath_temp,w
-		movwf	PCLATH			
-		swapf	status_temp,w				
-		movwf	STATUS		
-		swapf	w_temp,f		
-		swapf	w_temp,w
-		
-		retfie
-;-----------------------------------------------------------------------------------------------
-		
-start_timer
-		banksel TMR0
-		movwf TMR0
-		
-		bcf INTCON, T0IF
-		bsf INTCON, T0IE
-		
-		return
-toggle_led
-		
-		banksel PORTD
-		xorwf	PORTD, f
-		
-		return
-		
-reload_tmr1
-    
-	;Carico la costante sul registro a 16 bit
-	banksel	TMR1L
-	movlw	low  tmr_1s
-	movwf	TMR1L
-	movlw	high tmr_1s
-	movwf	TMR1H
-
-	;Azzero il bit di flag
-	banksel	    PIR1
-	bcf	    PIR1, TMR1IF
-
-	;Faccio partire il timer
-	banksel T1CON
-	bsf     T1CON, TMR1ON
-
-	return
-
-increment_cronometer
-	;incremento i secondi
-	incf	curr_sec
-	
-	;se i secondi sono arrivati a 60, allora incrementa i minuti, altrimenti return
-	movlw	.60
-	subwf	curr_sec, w
-
-	;se il bit Z di status è a 1 significa che i secondi sono arrivati a 60
-	banksel	STATUS
-	btfss	STATUS, Z
-	goto	end_increment
-	
-	;azzero i secondi
-	clrf	curr_sec
-	
-	;toggle led di conteggio
-	pagesel	toggle_led
-	movlw	0x08
-	call	toggle_led
-	
-	;incremento i minuti
-	incf	curr_min, w
-	
-	;se i minuti sono arrivati a 60, allora azzerali e return
-	movlw	.60
-	subwf	curr_min, w
-
-	;se il bit Z di status è a 1 significa che i secondi sono arrivati a 60
-	banksel	STATUS
-	btfss	STATUS, Z
-	goto	end_increment
-	
-	;azzero i secondi
-	clrf	curr_min
-		
-end_increment
-	return
-	
-		
+		goto main_loop	
 ;-----------------------------------------------------------------------------------------------
 		
 initHw

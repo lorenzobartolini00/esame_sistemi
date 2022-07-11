@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=main.asm
+SOURCEFILES_QUOTED_IF_SPACED=main.asm interrupt.asm functions.asm
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/interrupt.o ${OBJECTDIR}/functions.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/interrupt.o.d ${OBJECTDIR}/functions.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/main.o
+OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/interrupt.o ${OBJECTDIR}/functions.o
 
 # Source Files
-SOURCEFILES=main.asm
+SOURCEFILES=main.asm interrupt.asm functions.asm
 
 
 
@@ -103,6 +103,22 @@ ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
 	@${DEP_GEN} -d "${OBJECTDIR}/main.o"
 	@${FIXDEPS} "${OBJECTDIR}/main.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
+${OBJECTDIR}/interrupt.o: interrupt.asm  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/interrupt.o.d 
+	@${RM} ${OBJECTDIR}/interrupt.o 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/interrupt.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_SIMULATOR=1 -q -p$(MP_PROCESSOR_OPTION)  -l\"${OBJECTDIR}/interrupt.lst\" -e\"${OBJECTDIR}/interrupt.err\" $(ASM_OPTIONS)    -o\"${OBJECTDIR}/interrupt.o\" \"interrupt.asm\" 
+	@${DEP_GEN} -d "${OBJECTDIR}/interrupt.o"
+	@${FIXDEPS} "${OBJECTDIR}/interrupt.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
+	
+${OBJECTDIR}/functions.o: functions.asm  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/functions.o.d 
+	@${RM} ${OBJECTDIR}/functions.o 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/functions.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -d__DEBUG -d__MPLAB_DEBUGGER_SIMULATOR=1 -q -p$(MP_PROCESSOR_OPTION)  -l\"${OBJECTDIR}/functions.lst\" -e\"${OBJECTDIR}/functions.err\" $(ASM_OPTIONS)    -o\"${OBJECTDIR}/functions.o\" \"functions.asm\" 
+	@${DEP_GEN} -d "${OBJECTDIR}/functions.o"
+	@${FIXDEPS} "${OBJECTDIR}/functions.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
+	
 else
 ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
@@ -111,6 +127,22 @@ ${OBJECTDIR}/main.o: main.asm  nbproject/Makefile-${CND_CONF}.mk
 	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/main.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -q -p$(MP_PROCESSOR_OPTION)  -l\"${OBJECTDIR}/main.lst\" -e\"${OBJECTDIR}/main.err\" $(ASM_OPTIONS)    -o\"${OBJECTDIR}/main.o\" \"main.asm\" 
 	@${DEP_GEN} -d "${OBJECTDIR}/main.o"
 	@${FIXDEPS} "${OBJECTDIR}/main.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
+	
+${OBJECTDIR}/interrupt.o: interrupt.asm  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/interrupt.o.d 
+	@${RM} ${OBJECTDIR}/interrupt.o 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/interrupt.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -q -p$(MP_PROCESSOR_OPTION)  -l\"${OBJECTDIR}/interrupt.lst\" -e\"${OBJECTDIR}/interrupt.err\" $(ASM_OPTIONS)    -o\"${OBJECTDIR}/interrupt.o\" \"interrupt.asm\" 
+	@${DEP_GEN} -d "${OBJECTDIR}/interrupt.o"
+	@${FIXDEPS} "${OBJECTDIR}/interrupt.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
+	
+${OBJECTDIR}/functions.o: functions.asm  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/functions.o.d 
+	@${RM} ${OBJECTDIR}/functions.o 
+	@${FIXDEPS} dummy.d -e "${OBJECTDIR}/functions.err" $(SILENT) -c ${MP_AS} $(MP_EXTRA_AS_PRE) -q -p$(MP_PROCESSOR_OPTION)  -l\"${OBJECTDIR}/functions.lst\" -e\"${OBJECTDIR}/functions.err\" $(ASM_OPTIONS)    -o\"${OBJECTDIR}/functions.o\" \"functions.asm\" 
+	@${DEP_GEN} -d "${OBJECTDIR}/functions.o"
+	@${FIXDEPS} "${OBJECTDIR}/functions.o.d" $(SILENT) -rsi ${MP_AS_DIR} -c18 
 	
 endif
 

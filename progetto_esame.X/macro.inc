@@ -19,13 +19,3 @@ setReg0	macro Reg
 		    clrf Reg
 	    endm
 
-CAN_SLEEP equ .0
-CRN_RUN equ .1
- 
- ;nomi led
- LED_D1 equ .0
- LED_D2 equ .1
- LED_D3 equ .2
- LED_D4 equ .3
-
-
