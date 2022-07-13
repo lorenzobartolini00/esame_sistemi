@@ -155,7 +155,7 @@ prepare_transmission
 		banksel	byte_count
 		movwf	byte_count
 
-		banksel	printBuff
+		bankisel	printBuff	;siccome sto usando l'indirizzamento indiretto, devo utilizzare la direttiva bankisel che setta il bit IRP del registro STATUS
 		;copio l'indirizzo di printBuff nel registro FSR per l'indirizzamento indiretto
 		movlw	printBuff
 		movwf	FSR
